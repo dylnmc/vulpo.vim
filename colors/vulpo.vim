@@ -1,124 +1,185 @@
 " dark, naturalistic, retro colorscheme
 
-highlight clear
+hi clear
+if exists('syntax_on')
+  syntax reset
+endif
 let colors_name = 'vulpo'
 set background=dark
 
-if &t_Co < 8
+" setup {{{1
 
+let s:fg  = get(g:, 'vulpo_wood') ? 137 : 187
+let s:gfg = get(g:, 'vulpo_wood') ? '#af875f' : '#d7d7af'
+let s:bg  = 234
+let s:gbg = '#1c1c1c'
+let s:palette = [
+\ '238', '167',  '65', '173',  '66',  '95', '101', '187',
+\ '241', '203', '107', '180', '109', '140',  '72', '251', ]
+let s:xpalette = [
+\ '#444444', '#d75f5f', '#5f875f', '#d7875f', '#5f8787', '#875f5f', '#87875f', '#d7d7af',
+\ '#626262', '#ff5f5f', '#87af5f', '#d7af87', '#87afaf', '#af87d7', '#5faf87', '#c6c6c6', ]
+let s:atmap = {'B':'bold', 'R':'reverse', 'I':'italic', 'U':'underline'}
+let s:alt16 = {'233fg':0, '233bg':'NONE', '235fg':0, '235bg':0, '236fg':0, '236bg':0}
+let s:altx = {'233':'#121212', '235':'#262626', '236':'#303030', }
+let s:t_Co = exists('&t_Co') && !empty(&t_Co) && &t_Co > 1 ? &t_Co : 2
+let s:type = has('gui_running') || exists('termguicolors') && &termguicolors || s:t_Co >= 256 ? 0 : s:t_Co >= 16 ? 1 : 2
+
+if has('gui_running') || has('termguicolors') && &termguicolors
+    let g:terminal_ansi_colors = copy(s:xpalette)
+endif
+if has('nvim')
+    for ind in range(16)
+        exe 'let g:terminal_color_'.ind '=' string(s:xpalette[ind])
+    endfor
 endif
 
-" :help group-name " {{{1
+fun! s:hi(g, at, fg, bg, lat, lfg, lbg)
+    let at = join(map(split(a:at, '\zs'), { _,at -> get(s:atmap, at, 'NONE') }), ',')
+    let gat = at
+    let fg = a:fg !~ '^\d\+$' ? 'NONE' : a:fg < 16 ? s:palette[a:fg] : a:fg
+    let bg = a:bg !~ '^\d\+$' ? 'NONE' : a:bg < 16 ? s:palette[a:bg] : a:bg
+    let gfg = fg is 'NONE' ? 'NONE' : a:fg < 16 ? s:xpalette[a:fg] :
+    \ get(s:altx, a:fg, 'NONE')
+    let gbg = bg is 'NONE' ? 'NONE' : a:bg < 16 ? s:xpalette[a:bg] :
+    \ get(s:altx, a:bg, 'NONE')
+    if s:type is 1
+        let fg = a:fg !~ '^\d\+' ? 'NONE' : a:fg < 16 ? a:fg : a:fg == s:fg ? 'NONE' :
+        \ a:fg == s:bg ? 0 :  s:alt16[a:fg.'fg']
+        let bg = a:bg !~ '^\d\+' ? 'NONE' : a:bg < 16 ? a:bg : a:bg == s:bg ? 'NONE' :
+        \ a:bg == s:fg ? 7 :  s:alt16[a:bg.'bg']
+    elseif s:type is 2
+        let fg = a:lfg !~ '^\d\+$' ? 'NONE' : a:lfg
+        let bg = a:lbg !~ '^\d\+$' ? 'NONE' : a:lbg
+        let at = join(map(split(a:lat, '\zs'), { _,at -> get(s:atmap, at, 'NONE') }), ',')
+    endif
+    exe 'hi' a:g 'cterm='.at 'ctermfg='.fg 'ctermbg='.bg 'gui='.at 'guifg='.gfg 'guibg='.gbg
+endfun
 
-hi Comment term=NONE cterm=NONE ctermfg=240 ctermbg=NONE guifg=#585858 guibg=NONE
-hi Ignore  term=NONE cterm=NONE ctermfg=240 ctermbg=NONE guifg=#585858 guibg=NONE
+com! -buffer -nargs=+ -bar Hi call <sid>hi(<f-args>)
 
-hi Constant term=NONE cterm=NONE ctermfg=167 ctermbg=NONE guifg=#d75f5f guibg=NONE
-hi String   term=NONE cterm=NONE ctermfg=65  ctermbg=NONE guifg=#5f875f  guibg=NONE
+" :help group-name  {{{1
 
-hi Identifier term=NONE cterm=NONE ctermfg=180 ctermbg=NONE guifg=#d7af87 guibg=NONE
-hi Function   term=NONE cterm=NONE ctermfg=180 ctermbg=NONE guifg=#d7af87 guibg=NONE
+Hi Comment - 8 - - 7 -
+Hi Ignore  - 8 - - 7 -
 
-hi Statement term=NONE cterm=NONE ctermfg=173 ctermbg=NONE guifg=#d7875f guibg=NONE
+Hi Constant - 1 - - 1 -
+Hi String   - 2 - - 2 -
 
-hi PreProc term=NONE cterm=NONE ctermfg=180 ctermbg=NONE guifg=#d7af87 guibg=NONE
+Hi Identifier - 11 - B 3 -
 
-hi Type term=NONE cterm=NONE ctermfg=180 ctermbg=NONE guifg=#d7af87 guibg=NONE
+hi! link Function Identifier
+hi! link PreProc  Identifier
+hi! link Special  Identifier
+hi! link Type     Identifier
 
-hi Special        term=bold      cterm=NONE      ctermfg=173 ctermbg=NONE guifg=#d7875f guibg=NONE
-hi Tag            term=underline cterm=underline ctermfg=173 ctermbg=NONE guifg=#d7875f guibg=NONE
-hi SpecialComment term=inverse   cterm=NONE      ctermfg=16  ctermbg=65 guifg=#000000  guibg=#5f875f
+Hi Statement - 3 - - 3 -
+Hi Tag       U 3 - B 3 -
 
-hi Bold       term=bold      cterm=bold      ctermfg=NONE ctermbg=NONE guifg=NONE guibg=NONE
-hi HtmlBold   term=bold      cterm=bold      ctermfg=NONE ctermbg=NONE guifg=NONE guibg=NONE
-hi Italic     term=NONE      cterm=NONE      ctermfg=66   ctermbg=NONE guifg=#5f8787   guibg=NONE
-hi HtmlItalic term=NONE      cterm=NONE      ctermfg=66   ctermbg=NONE guifg=#5f8787   guibg=NONE
-hi Underlined term=underline cterm=underline ctermfg=NONE ctermbg=NONE guifg=NONE guibg=NONE
+Hi Bold       B - - B - -
+Hi Italic     B 6 - B 4 -
+Hi Underlined U - - B 5 -
 
-hi Error term=inverse cterm=bold ctermfg=234 ctermbg=203 guifg=#1c1c1c guibg=#ff5f5f
+hi! link HtmlBold   Bold
+hi! link HtmlItalic Italic
 
-hi Todo term=inverse cterm=bold ctermfg=16 ctermbg=65 guifg=#000000 guibg=#5f875f
+Hi Error BR 1 - BR 1 7
+Hi Todo  BR 2 - BR 2 7
 
-" :help highlight-groups " {{{1
+" :help highlight-groups  {{{1
 
-if get(g:, 'vulpo_wood')
-    hi Normal   term=NONE cterm=NONE ctermfg=137 ctermbg=234 guifg=#af875f guibg=#1c1c1c
-    hi Terminal term=NONE cterm=NONE ctermfg=137 ctermbg=234 guifg=#af875f guibg=#1c1c1c
-else
-    hi Normal   term=NONE cterm=NONE ctermfg=187 ctermbg=234 guifg=#d7d7af guibg=#1c1c1c
-    hi Terminal term=NONE cterm=NONE ctermfg=187 ctermbg=234 guifg=#d7d7af guibg=#1c1c1c
-endif
+exe printf('hi Normal ctermfg=%d ctermbg=%d guifg=%s guibg=%s', s:fg, s:bg, s:gfg, s:gbg)
 
-hi StatusLine       term=bold cterm=bold ctermfg=16 ctermbg=65 guifg=#000000 guibg=#5f875f
-hi StatusLineNC     term=NONE cterm=bold ctermfg=65 ctermbg=238 guifg=#5f875f guibg=#444444
-hi StatusLineTerm   term=bold cterm=bold ctermfg=16 ctermbg=65 guifg=#000000 guibg=#5f875f
-hi StatusLineTermNC term=NONE cterm=bold ctermfg=65 ctermbg=238 guifg=#5f875f guibg=#444444
+hi! link Terminal Normal
 
-hi TabLine     term=NONE cterm=NONE ctermfg=180  ctermbg=235 guifg=#d7af87  guibg=#262626
-hi TabLineFill term=NONE cterm=NONE ctermfg=65 ctermbg=233 guifg=#5f875f guibg=#121212
-hi TabLineSel  term=bold cterm=bold ctermfg=180  ctermbg=238 guifg=#d7af87  guibg=#444444
+Hi StatusLine   - 15 0   - 0 6
+Hi StatusLineNC - 11 236 B 6 0
 
-hi Pmenu      term=NONE    cterm=NONE ctermfg=65  ctermbg=236 guifg=#5f875f  guibg=#303030
-hi PmenuSel   term=inverse cterm=NONE ctermfg=236 ctermbg=65 guifg=#303030 guibg=#5f875f
-hi PmenuSbar  term=inverse cterm=NONE ctermfg=65  ctermbg=236 guifg=#5f875f  guibg=#303030
-hi PmenuThumb term=inverse cterm=NONE ctermfg=236 ctermbg=65 guifg=#303030 guibg=#5f875f
+hi! link StatusLineTerm   StatusLine
+hi! link StatusLineTermNC StatusLineNC
 
-hi WildMenu term=inverse cterm=bold ctermfg=65 ctermbg=236 guifg=#5f875f guibg=#303030
+Hi TabLine     - 11 0   - 3 -
+Hi TabLineFill - 2  233 - 6 -
+Hi TabLineSel  B 11 8   B 3 -
 
-" hi Menu
-" hi Scrollbar
-" hi Tooltip
+Hi Pmenu      - 3  0 - 3 0
+Hi PmenuSel   - 11 8 B 3 0
+Hi PmenuSbar  R 0  - - 6 0
+Hi PmenuThumb R 2  - - 0 6
 
-hi Title      term=bold cterm=bold ctermfg=180 ctermbg=NONE guifg=#d7af87 guibg=NONE
-hi SpecialKey term=bold cterm=bold ctermfg=66 ctermbg=NONE guifg=#5f8787 guibg=NONE
-hi NonText    term=bold cterm=bold ctermfg=66 ctermbg=236 guifg=#5f8787 guibg=#303030
+Hi WildMenu BR 3 - BR 3 -
 
-hi EndOfBuffer term=NONE cterm=NONE ctermfg=65 ctermbg=233 guifg=#5f875f guibg=#121212
-hi Folded      term=NONE cterm=NONE ctermfg=65 ctermbg=233 guifg=#5f875f guibg=#121212
+Hi Title      - 4  -   - 3 -
+Hi SpecialKey - 4  -   B 6 -
+Hi NonText    - 4  236 B 6 -
 
-hi Search       term=underline    cterm=NONE ctermfg=16   ctermbg=209 guifg=#000000   guibg=#ff875f
-hi IncSearch    term=inverse,bold cterm=bold ctermfg=16   ctermbg=222 guifg=#000000   guibg=#ffd787
-hi QuickFixLine term=inverse      cterm=bold ctermfg=NONE ctermbg=236 guifg=NONE guibg=#303030
+Hi EndOfBuffer - 4 233 B 6 -
+Hi Folded      - 4 233 B 6 -
 
-hi Conceal  term=NONE cterm=NONE ctermfg=101 ctermbg=236 guifg=#87875f guibg=#303030
-hi Cursor   term=NONE cterm=NONE ctermfg=235 ctermbg=251 guifg=#262626 guibg=#c6c6c6
-hi lCursor  term=NONE cterm=NONE ctermfg=235 ctermbg=251 guifg=#262626 guibg=#c6c6c6
-hi CursorIM term=NONE cterm=NONE ctermfg=235 ctermbg=251 guifg=#262626 guibg=#c6c6c6
+Hi Search       BR 3  -   - 0 3
+Hi IncSearch    BR 11 -   B 0 3
+Hi QuickFixLine B  -  236 B - -
 
-hi Directory term=bold cterm=NONE ctermfg=109 ctermbg=NONE guifg=#87afaf guibg=NONE
+Hi Conceal  - 6  0 - 7 -
+Hi Cursor   R 15 - R 0 7
+Hi lCursor  R 15 - R 0 7
+Hi CursorIM R 15 - R 0 7
 
-hi ErrorMsg   term=NONE      cterm=bold ctermfg=16  ctermbg=203 guifg=#000000  guibg=#ff5f5f
-hi WarningMsg term=underline cterm=bold ctermfg=16  ctermbg=221 guifg=#000000  guibg=#ffd75f
-hi ModeMsg    term=underline cterm=NONE ctermfg=209 ctermbg=NONE guifg=#ff875f guibg=NONE
-hi MoreMsg    term=underline cterm=NONE ctermfg=209 ctermbg=NONE guifg=#ff875f guibg=NONE
-hi Question   term=underline cterm=NONE ctermfg=209 ctermbg=NONE guifg=#ff875f guibg=NONE
+Hi Directory - 12 - B 4 -
 
-hi SpellBad   term=inverse cterm=bold ctermfg=234 ctermbg=203 guifg=#1c1c1c guibg=#ff5f5f
-hi SpellCap   term=inverse cterm=bold ctermfg=234 ctermbg=203 guifg=#1c1c1c guibg=#ff5f5f
-hi SpellLocal term=inverse cterm=bold ctermfg=234 ctermbg=203 guifg=#1c1c1c guibg=#ff5f5f
-hi SpellRare  term=inverse cterm=bold ctermfg=234 ctermbg=203 guifg=#1c1c1c guibg=#ff5f5f
+Hi ErrorMsg   BR 1  - R 1 -
+Hi WarningMsg BR 11 - R 3 -
 
-hi DiffAdd    term=bold cterm=bold ctermfg=16 ctermbg=65 guifg=#000000 guibg=#5f875f
-hi DiffDelete term=bold cterm=NONE ctermfg=95 ctermbg=95 guifg=#875f5f guibg=#875f5f
-hi DiffChange term=bold cterm=NONE ctermfg=16 ctermbg=101 guifg=#000000 guibg=#87875f
-hi DiffText   term=bold cterm=bold ctermfg=16 ctermbg=173 guifg=#000000 guibg=#d7875f
+Hi ModeMsg    B  3 - B 3 -
 
-hi ColorColumn  term=inverse cterm=NONE ctermfg=NONE ctermbg=235 guifg=NONE guibg=#262626
-hi CursorColumn term=inverse cterm=NONE ctermfg=NONE ctermbg=235 guifg=NONE guibg=#262626
-hi CursorLine   term=inverse cterm=NONE ctermfg=NONE ctermbg=235 guifg=NONE guibg=#262626
+hi! link MoreMsg  ModeMsg
+hi! link Question ModeMsg
 
-hi Visual    term=inverse cterm=NONE ctermfg=101 ctermbg=238 guifg=#87875f guibg=#444444
-hi VisualNOS term=inverse cterm=NONE ctermfg=101 ctermbg=238 guifg=#87875f guibg=#444444
+Hi SpellBad   BR 1 - BR 1 7
+Hi SpellCap   BR 1 - BR 1 7
+Hi SpellLocal BR 1 - BR 1 7
+Hi SpellRare  BR 1 - BR 1 7
 
-hi VertSplit term=NONE cterm=NONE ctermfg=65 ctermbg=238 guifg=#5f875f guibg=#444444
+Hi DiffAdd     BR 2  - BR 2 -
+Hi DiffDelete  -  5  5 -  1 1
+Hi DiffChange  R  6  - R  6 -
+Hi DiffText    BR 11 - R  3 -
 
-hi LineNr       term=NONE cterm=NONE ctermfg=180 ctermbg=236 guifg=#d7af87 guibg=#303030
-hi CursorLineNr term=NONE cterm=NONE ctermfg=167 ctermbg=236 guifg=#d75f5f guibg=#303030
-hi LineNrAbove  term=NONE cterm=NONE ctermfg=180 ctermbg=236 guifg=#d7af87 guibg=#303030
-hi LineNrBelow  term=NONE cterm=NONE ctermfg=180 ctermbg=236 guifg=#d7af87 guibg=#303030
-hi FoldColumn   term=NONE cterm=NONE ctermfg=167 ctermbg=236 guifg=#d75f5f guibg=#303030
-hi SignColumn   term=NONE cterm=NONE ctermfg=180 ctermbg=236 guifg=#d7af87 guibg=#303030
+Hi DiffAdded   B 2 236 R 2 -
+Hi DiffRemoved B 1 236 R 1 -
 
-hi MatchParen term=inverse cterm=bold ctermfg=16 ctermbg=173 guifg=#000000 guibg=#d7875f
+Hi ColorColumn  - - 235 - - -
+Hi CursorColumn - - 235 - - -
+Hi CursorLine   - - 235 - - -
 
-" vim: set fdm=marker fmr={{{,}}} fdl=0:
+Hi Visual    - 6 0 - 5 -
+Hi VisualNOS - 6 0 - 5 -
+
+Hi VertSplit - 2 0 B 6 -
+
+Hi LineNr       - 11 236 B 3 -
+Hi CursorLineNr - 1  236 B 1 -
+Hi LineNrAbove  - 11 236 B 3 -
+Hi LineNrBelow  - 11 236 B 3 -
+Hi FoldColumn   - 1  236 B 1 -
+Hi SignColumn   - 11 236 - 3 -
+
+Hi MatchParen BR 3 - BR 3 -
+
+delc Hi
+
+if get(g:, 'vulpo_ft_mods', 1) " ft-specific modifications {{{1
+
+    hi! link cStorageClass Statement
+    hi! link cEnum         Statement
+    hi! link cTypedef      Statement
+
+    hi! link cMacroName            Identifier
+    hi! link cDataStructureKeyword Identifier
+
+    hi! link vimHiAttrib     Constant
+    hi! link vimCommentTitle Title
+
+endif " }}}
+
+" vim: set fdm=marker fmr={{{,}}} fdl=0 tw=100:
