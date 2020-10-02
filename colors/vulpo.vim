@@ -1,4 +1,8 @@
-" dark, naturalistic, retro colorscheme
+" Author: Nova Senco
+" Last Change: 02 October 2020
+" Description: dark, naturalistic, retro colorscheme
+
+" setup {{{1
 
 hi clear
 if exists('syntax_on')
@@ -7,7 +11,6 @@ endif
 let colors_name = 'vulpo'
 set background=dark
 
-" setup {{{1
 
 let s:fg  = get(g:, 'vulpo_wood') ? 137 : 187
 let s:gfg = get(g:, 'vulpo_wood') ? '#af875f' : '#d7d7af'
@@ -26,34 +29,34 @@ let s:t_Co = exists('&t_Co') && !empty(&t_Co) && &t_Co > 1 ? &t_Co : 2
 let s:type = has('gui_running') || exists('termguicolors') && &termguicolors || s:t_Co >= 256 ? 0 : s:t_Co >= 16 ? 1 : 2
 
 if has('gui_running') || has('termguicolors') && &termguicolors
-    let g:terminal_ansi_colors = copy(s:xpalette)
+  let g:terminal_ansi_colors = copy(s:xpalette)
 endif
 if has('nvim')
-    for ind in range(16)
-        exe 'let g:terminal_color_'.ind '=' string(s:xpalette[ind])
-    endfor
+  for ind in range(16)
+    exe 'let g:terminal_color_'.ind '=' string(s:xpalette[ind])
+  endfor
 endif
 
 fun! s:hi(g, at, fg, bg, lat, lfg, lbg)
-    let at = join(map(split(a:at, '\zs'), { _,at -> get(s:atmap, at, 'NONE') }), ',')
-    let gat = at
-    let fg = a:fg !~ '^\d\+$' ? 'NONE' : a:fg < 16 ? s:palette[a:fg] : a:fg
-    let bg = a:bg !~ '^\d\+$' ? 'NONE' : a:bg < 16 ? s:palette[a:bg] : a:bg
-    let gfg = fg is 'NONE' ? 'NONE' : a:fg < 16 ? s:xpalette[a:fg] :
-    \ get(s:altx, a:fg, 'NONE')
-    let gbg = bg is 'NONE' ? 'NONE' : a:bg < 16 ? s:xpalette[a:bg] :
-    \ get(s:altx, a:bg, 'NONE')
-    if s:type is 1
-        let fg = a:fg !~ '^\d\+' ? 'NONE' : a:fg < 16 ? a:fg : a:fg == s:fg ? 'NONE' :
-        \ a:fg == s:bg ? 0 :  s:alt16[a:fg.'fg']
-        let bg = a:bg !~ '^\d\+' ? 'NONE' : a:bg < 16 ? a:bg : a:bg == s:bg ? 'NONE' :
-        \ a:bg == s:fg ? 7 :  s:alt16[a:bg.'bg']
-    elseif s:type is 2
-        let fg = a:lfg !~ '^\d\+$' ? 'NONE' : a:lfg
-        let bg = a:lbg !~ '^\d\+$' ? 'NONE' : a:lbg
-        let at = join(map(split(a:lat, '\zs'), { _,at -> get(s:atmap, at, 'NONE') }), ',')
-    endif
-    exe 'hi' a:g 'cterm='.at 'ctermfg='.fg 'ctermbg='.bg 'gui='.at 'guifg='.gfg 'guibg='.gbg
+  let at = join(map(split(a:at, '\zs'), "get(s:atmap, v:val, 'NONE')"), ',')
+  let gat = at
+  let fg = a:fg !~ '^\d\+$' ? 'NONE' : a:fg < 16 ? s:palette[a:fg] : a:fg
+  let bg = a:bg !~ '^\d\+$' ? 'NONE' : a:bg < 16 ? s:palette[a:bg] : a:bg
+  let gfg = fg is 'NONE' ? 'NONE' : a:fg < 16 ? s:xpalette[a:fg] :
+  \ get(s:altx, a:fg, 'NONE')
+  let gbg = bg is 'NONE' ? 'NONE' : a:bg < 16 ? s:xpalette[a:bg] :
+  \ get(s:altx, a:bg, 'NONE')
+  if s:type is 1
+    let fg = a:fg !~ '^\d\+' ? 'NONE' : a:fg < 16 ? a:fg : a:fg == s:fg ? 'NONE' :
+    \ a:fg == s:bg ? 0 :  s:alt16[a:fg.'fg']
+    let bg = a:bg !~ '^\d\+' ? 'NONE' : a:bg < 16 ? a:bg : a:bg == s:bg ? 'NONE' :
+    \ a:bg == s:fg ? 7 :  s:alt16[a:bg.'bg']
+  elseif s:type is 2
+    let fg = a:lfg !~ '^\d\+$' ? 'NONE' : a:lfg
+    let bg = a:lbg !~ '^\d\+$' ? 'NONE' : a:lbg
+    let at = join(map(split(a:lat, '\zs'), { _,at -> get(s:atmap, at, 'NONE') }), ',')
+  endif
+  exe 'hi' a:g 'cterm='.at 'ctermfg='.fg 'ctermbg='.bg 'gui='.at 'guifg='.gfg 'guibg='.gbg
 endfun
 
 com! -buffer -nargs=+ -bar Hi call <sid>hi(<f-args>)
@@ -109,12 +112,12 @@ Hi PmenuThumb R 2  - - 0 6
 
 Hi WildMenu BR 3 - BR 3 -
 
-Hi Title      - 4  -   - 3 -
+Hi Title      U 4  -   - 3 -
 Hi SpecialKey - 4  -   B 6 -
-Hi NonText    - 4  236 B 6 -
 
-Hi EndOfBuffer - 4 233 B 6 -
-Hi Folded      - 4 233 B 6 -
+Hi NonText     - 4 233 B 6 -
+hi! link EndOfBuffer NonText 
+hi! link Folded      NonText 
 
 Hi Search       BR 3  -   - 0 3
 Hi IncSearch    BR 11 -   B 0 3
@@ -170,16 +173,16 @@ delc Hi
 
 if get(g:, 'vulpo_ft_mods', 1) " ft-specific modifications {{{1
 
-    hi! link cStorageClass Statement
-    hi! link cEnum         Statement
-    hi! link cTypedef      Statement
+  hi! link cStorageClass Statement
+  hi! link cEnum         Statement
+  hi! link cTypedef      Statement
 
-    hi! link cMacroName            Identifier
-    hi! link cDataStructureKeyword Identifier
+  hi! link cMacroName            Identifier
+  hi! link cDataStructureKeyword Identifier
 
-    hi! link vimHiAttrib     Constant
-    hi! link vimCommentTitle Title
+  hi! link vimHiAttrib     Constant
+  hi! link vimCommentTitle Title
 
 endif " }}}
 
-" vim: set fdm=marker fmr={{{,}}} fdl=0 tw=100:
+" vim: set cole=0 syn=off:
